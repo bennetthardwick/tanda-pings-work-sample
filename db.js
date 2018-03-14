@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-let db = new sqlite3.Database('database');
+let db = new sqlite3.Database('database.db');
 
 
 const deviceTableName = "devices";
@@ -41,17 +41,78 @@ module.exports.addPing = (device_id, epoch_time) => {
         else if (row && row.id) db.run(pingInsertQuery, epoch_time, row.id);
       })
     });
-    
+
   });
 };
 
-module.exports.getPingByDate = (device_id, date) => {
+module.exports.getPingsByDate = (device_id, date) => {
+  let dateFrom = new Date(date).setHours(0, 0, 0, 0);
+  let dateTo = new Date(date).setHours(23, 59, 59, 999);
+
+  return genericDevicePingsByPeriod(dateFrom, dateTo, device_id);
 
 };
 
-module.exports.getPingByPeriod = (device_id, from, to) => {
-
+module.exports.getPingsByPeriod = (device_id, from, to) => {
+  return genericDevicePingsByPeriod(from, to, device_id);
 };
+
+module.exports.getAllPingsByPeriod = (from, to) => {
+  return genericPingsByPeriod(from, to);
+};
+
+module.exports.getAllPingsByDate = (date, to) => {
+
+
+  let dateFrom = new Date(date).setHours(0, 0, 0, 0);
+  let dateTo = new Date(date).setHours(23, 59, 59, 999);
+
+  return genericPingsByPeriod(dateFrom, dateTo);
+}
+
+function genericPingsByPeriod(from, to) {
+
+  console.log(from);
+
+  let fromEpoch = new Date(from).getTime() / 1000;
+  let toEpoch = new Date(to).getTime() / 1000;
+
+  let allSelectQuery = `SELECT * FROM ${pingTableName} 
+                        WHERE epoch_time >= (?) AND epoch_time < (?)`;
+
+
+  return new Promise((resolve, reject) => {
+    db.all(allSelectQuery, fromEpoch, toEpoch, (err, rows) => {
+
+      console.log(fromEpoch);
+
+      if (err) return reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
+function genericDevicePingsByPeriod(from, to, device_id) {
+  let fromEpoch = Math.floor(new Date(from).getTime() / 1000);
+  let toEpoch = Math.floor(new Date(to).getTime() / 1000);
+
+
+  console.log(fromEpoch, 'to', toEpoch);
+
+  let allSelectQuery = `SELECT * FROM ${pingTableName} 
+                        WHERE epoch_time >= (?) AND epoch_time < (?)
+                          AND device=(SELECT id FROM devices WHERE device_id=(?))`;
+
+
+  return new Promise((resolve, reject) => {
+    db.all(allSelectQuery, fromEpoch, toEpoch, device_id, (err, rows) => {
+      console.log(rows);
+      if (err) return reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
 
 module.exports.getDevices = () => {
   return new Promise((resolve, reject) => {

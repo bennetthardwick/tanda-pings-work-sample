@@ -20,8 +20,18 @@ server.post('/clear_data', (req, res) => {
     .then(() => res.send(""));
 });
 
+server.get('/all/:date', (req, res) => {
+
+});
+
+server.get('/all/:from/:to', (req, res) => {
+  db.getAllPingsByPeriod(req.params.from, req.params.to)
+    .then((x) => res.send(x));
+});
+
 server.get('/:device_id/:date', (req, res) => {
-  res.send('id/date');
+  db.getPingsByDate(req.params.device_id, req.params.date)
+    .then((x) => res.send(x));
 });
 
 server.get('/:device_id/:from/:to', (req, res) => {
