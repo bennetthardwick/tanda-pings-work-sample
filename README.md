@@ -9,7 +9,7 @@ To install dependencies, simply run:
 npm install
 ```
 ### Testing
-Note: [Mocha](https://github.com/mochajs/mocha) is required for testing.
+Note: [Mocha](https://github.com/mochajs/mocha) and [Ruby](https://www.ruby-lang.org/en/) are required for testing.
 To test the software, run:
 ```
 npm test

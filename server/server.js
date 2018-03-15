@@ -19,27 +19,32 @@ server.post('/clear_data', (req, res) => {
 
 server.get('/all/:date', (req, res) => {
   db.getAllPingsByDate(req.params.date)
-    .then((x) => res.json(x));
+    .then(x => res.json(x))
+    .catch(x => res.status(500).send());
 });
 
 server.get('/all/:from/:to', (req, res) => {
   db.getAllPingsByPeriod(req.params.from, req.params.to)
-    .then((x) => res.send(x));
+    .then(x => res.send(x))
+    .catch(() => res.status(500).send());
 });
 
 server.get('/:device_id/:date', (req, res) => {
   db.getPingsByDate(req.params.device_id, req.params.date)
-    .then((x) => res.send(x));
+    .then(x => res.send(x))
+    .catch(() => res.status(500).send());
 });
 
 server.get('/:device_id/:from/:to', (req, res) => {
   db.getPingsByPeriod(req.params.device_id, req.params.from, req.params.to)
-    .then((x) => res.send(x));
+    .then(x => res.send(x))
+    .catch(() => res.status(500).send());
 });
 
 server.get('/devices', (req, res) => {
   db.getDevices()
-    .then(x => res.send(x));
+    .then(x => res.send(x))
+    .catch(() => res.status(500).send());
 });
 
 module.exports = server;
