@@ -26,6 +26,6 @@ describe('Database', () => {
 
   it('parses unix timestamp correctly', () => {
     expect(database.parseTime('1514764800') == 1514764800).to.equal(true);
-  })
+  });
 
 });
