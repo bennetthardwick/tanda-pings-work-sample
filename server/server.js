@@ -25,7 +25,7 @@ server.get('/all/:date', (req, res) => {
 
 server.get('/all/:from/:to', (req, res) => {
   db.getAllPingsByPeriod(req.params.from, req.params.to)
-    .then(x => res.send(x));
+    .then(x => res.send(x))
     .catch(() => res.status(500).send());
 });
 
