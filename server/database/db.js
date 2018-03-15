@@ -6,7 +6,7 @@ const deviceTableName = "devices";
 const pingTableName = "pings";
 const deviceTableCreationQuery = 
   `CREATE TABLE IF NOT EXISTS ${deviceTableName}(
-    id INTEGER PRIMARY KEY,
+    device INTEGER PRIMARY KEY,
     device_id TEXT UNIQUE
   );
   `;
@@ -15,7 +15,7 @@ const pingTableCreationQuery =
   `CREATE TABLE IF NOT EXISTS ${pingTableName}(
     epoch_time INTEGER,
     device INTEGER,
-    FOREIGN KEY(device) REFERENCES ${deviceTableName}(id)
+    FOREIGN KEY(device) REFERENCES ${deviceTableName}(device)
   );
   `;
 
@@ -24,7 +24,7 @@ module.exports.addPing = (device_id, epoch_time) => {
   return new Promise((resolve, reject) => {
 
     let deviceSelectQuery = 
-      `SELECT id FROM ${deviceTableName} WHERE device_id=(?)`;
+      `SELECT device FROM ${deviceTableName} WHERE device_id=(?)`;
     
     let deviceInsertQuery = 
       `INSERT INTO ${deviceTableName} (device_id) 
@@ -38,7 +38,7 @@ module.exports.addPing = (device_id, epoch_time) => {
       db.run(deviceInsertQuery, device_id, device_id)
       db.get(deviceSelectQuery, device_id, (err, row) => {
         if (err) return reject(err);
-        else if (row && row.id) db.run(pingInsertQuery, epoch_time, row.id, resolve);
+        else if (row && row.device) db.run(pingInsertQuery, epoch_time, row.device, resolve);
       })
     });
 
@@ -47,10 +47,9 @@ module.exports.addPing = (device_id, epoch_time) => {
 
 module.exports.getPingsByDate = (device_id, date) => {
   
-  let dateFrom = new Date(date).setUTCHours(0, 0, 0, 0) / 1000;
-  let dateTo = Math.ceil(new Date(date).setUTCHours(23, 59, 59, 999) / 1000);
+  let day = parseDate(date);
 
-  return genericDevicePingsByPeriod(dateFrom, dateTo, device_id);
+  return genericDevicePingsByPeriod(day.start, day.end, device_id);
 
 };
 
@@ -64,27 +63,25 @@ module.exports.getAllPingsByPeriod = (from, to) => {
 
 module.exports.getAllPingsByDate = (date, to) => {
 
+  let day = parseDate(date);
 
-  let dateFrom = new Date(date).setUTCHours(0, 0, 0, 0);
-  let dateTo = new Date(date).setUTCHours(23, 59, 59, 999);
-
-  return genericPingsByPeriod(dateFrom, dateTo);
+  return genericPingsByPeriod(day.start, day.end);
 }
 
 function genericPingsByPeriod(from, to) {
 
-  let fromEpoch = new Date(from).getTime() / 1000;
-  let toEpoch = new Date(to).getTime() / 1000;
+  let fromEpoch = parseTime(from);
+  let toEpoch = parseTime(to);
 
   let allSelectQuery = `SELECT * FROM ${pingTableName} 
+                        JOIN ${deviceTableName} USING (device)
                         WHERE epoch_time BETWEEN (?) AND (?)`;
 
 
   return new Promise((resolve, reject) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, (err, rows) => {
-  
       if (err) return reject(err);
-      else resolve(rows);
+      else resolve(createDeviceHashTableFromRows(rows));
     });
   });
 }
@@ -96,7 +93,7 @@ function genericDevicePingsByPeriod(from, to, device_id) {
 
   let allSelectQuery = `SELECT * FROM ${pingTableName} 
                         WHERE epoch_time BETWEEN (?) AND (?)
-                          AND device=(SELECT id FROM devices WHERE device_id=(?))`;
+                          AND device=(SELECT device FROM devices WHERE device_id=(?))`;
 
   return new Promise((resolve, reject) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, device_id, (err, rows) => {
@@ -113,8 +110,8 @@ module.exports.getDevices = () => {
     db.all(`SELECT device_id FROM ${deviceTableName}`, (err, rows) => {
       if (err) return reject(err);
       else if (rows) {
-    
-        return resolve(rows);
+        // TODO: put in a format function for better readability
+        return resolve(rows.map(x => x.device_id));
       }
     })
   });
@@ -148,6 +145,35 @@ let parseTime = (time) => {
   if (parseInt(time) <= 9999) return Math.round(new Date(time).getTime() / 1000);
   else if (parseInt(time) > 9999) return time;
   else return false;
+}
+
+let parseDate = (date) => {
+  return {
+    start: new Date(date).setUTCHours(0, 0, 0, 0) / 1000,
+    end: new Date(date).setUTCHours(23, 59, 59, 999) / 1000
+  }
+}
+
+// TODO: Find a faster way to manipulate sqlite data
+let createDeviceHashTableFromRows = (rows) => {
+  
+  let data = {};
+
+  console.log("row length", rows.length);
+
+  rows.forEach((x) => {
+    if (!data[x.device_id]) data[x.device_id] = [];
+    data[x.device_id].push(x.epoch_time);
+  })
+
+  console.log(data);
+
+  return data;
+
+}
+
+let createArrayFromRows = (rows) => {
+
 }
 
 module.exports.parseTime = parseTime; 
