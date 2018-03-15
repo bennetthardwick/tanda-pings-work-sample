@@ -38,7 +38,7 @@ module.exports.addPing = (device_id, epoch_time) => {
       db.run(deviceInsertQuery, device_id, device_id)
       db.get(deviceSelectQuery, device_id, (err, row) => {
         if (err) return reject(err);
-        else if (row && row.id) db.run(pingInsertQuery, epoch_time, row.id);
+        else if (row && row.id) db.run(pingInsertQuery, epoch_time, row.id, resolve);
       })
     });
 
@@ -46,8 +46,11 @@ module.exports.addPing = (device_id, epoch_time) => {
 };
 
 module.exports.getPingsByDate = (device_id, date) => {
-  let dateFrom = new Date(date).setHours(0, 0, 0, 0);
-  let dateTo = new Date(date).setHours(23, 59, 59, 999);
+  let dateFrom = new Date(date).setUTCHours(0, 0, 0, 0);
+
+  console.log(date);
+
+  let dateTo = new Date(date).setUTCHours(23, 59, 59, 999);
 
   return genericDevicePingsByPeriod(dateFrom, dateTo, device_id);
 
@@ -64,28 +67,24 @@ module.exports.getAllPingsByPeriod = (from, to) => {
 module.exports.getAllPingsByDate = (date, to) => {
 
 
-  let dateFrom = new Date(date).setHours(0, 0, 0, 0);
-  let dateTo = new Date(date).setHours(23, 59, 59, 999);
+  let dateFrom = new Date(date).setUTCHours(0, 0, 0, 0);
+  let dateTo = new Date(date).setUTCHours(23, 59, 59, 999);
 
   return genericPingsByPeriod(dateFrom, dateTo);
 }
 
 function genericPingsByPeriod(from, to) {
 
-  console.log(from);
-
   let fromEpoch = new Date(from).getTime() / 1000;
   let toEpoch = new Date(to).getTime() / 1000;
 
   let allSelectQuery = `SELECT * FROM ${pingTableName} 
-                        WHERE epoch_time >= (?) AND epoch_time < (?)`;
+                        WHERE epoch_time BETWEEN (?) AND (?)`;
 
 
   return new Promise((resolve, reject) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, (err, rows) => {
-
-      console.log(fromEpoch);
-
+      console.log(rows);
       if (err) return reject(err);
       else resolve(rows);
     });
@@ -93,20 +92,22 @@ function genericPingsByPeriod(from, to) {
 }
 
 function genericDevicePingsByPeriod(from, to, device_id) {
+
+  console.log(from, to);
+
   let fromEpoch = Math.floor(new Date(from).getTime() / 1000);
   let toEpoch = Math.floor(new Date(to).getTime() / 1000);
 
-
-  console.log(fromEpoch, 'to', toEpoch);
-
   let allSelectQuery = `SELECT * FROM ${pingTableName} 
-                        WHERE epoch_time >= (?) AND epoch_time < (?)
+                        WHERE epoch_time BETWEEN (?) AND (?)
                           AND device=(SELECT id FROM devices WHERE device_id=(?))`;
 
 
+  console.log(fromEpoch, 'and', toEpoch);
+
   return new Promise((resolve, reject) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, device_id, (err, rows) => {
-      console.log(rows);
+      console.log(err, rows);
       if (err) return reject(err);
       else resolve(rows);
     });
@@ -130,8 +131,7 @@ module.exports.resetDatabase = () => {
   return new Promise((resolve, reject) => {
     db.serialize(() => {
       db.run(`DELETE FROM ${deviceTableName}`);
-      db.run(`DELETE FROM ${pingTableName}`);
-      resolve();
+      db.run(`DELETE FROM ${pingTableName}`, resolve);
     });
   })
 };
@@ -140,8 +140,7 @@ module.exports.createTables = (callback) => {
   return new Promise((resolve, reject) => {
     db.serialize(() => {
       db.run(deviceTableCreationQuery);
-      db.run(pingTableCreationQuery);
-      resolve();
+      db.run(pingTableCreationQuery, resolve);
     });
   })
 };
@@ -151,3 +150,9 @@ module.exports.closeConnection = () => {
 }
 
 module.exports.sqlite = db;
+
+function parseTime(time) {
+  if (typeof time === "string") return new Date(time).getTime() / 1000;
+  else if (typeof time === "number") return time;
+  else return false;
+}
