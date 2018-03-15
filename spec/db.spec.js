@@ -1,4 +1,4 @@
-const database = require('../db');
+const database = require('../server/database/db');
 const expect = require('chai').expect;
 
 describe('Database', () => {

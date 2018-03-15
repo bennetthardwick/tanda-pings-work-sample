@@ -1,12 +1,9 @@
 const express = require('express');
-const port = process.env.PORT || 3000;
-
-const db = require('./db');
+const db = require('./database/db');
 
 db.createTables();
 
 var server = express();
-server.set('port', port);
 
 server.post('/:device_id/:epoch_time', (req, res) => {
   db.addPing(req.params.device_id, req.params.epoch_time)
@@ -43,4 +40,4 @@ server.get('/devices', (req, res) => {
     .then(x => res.send(x));
 });
 
-server.listen(port, () => console.log(`Listening on port ${port}`));
+module.exports = server;
