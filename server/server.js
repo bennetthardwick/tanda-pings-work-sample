@@ -17,7 +17,7 @@ server.post('/clear_data', (req, res) => {
 
 server.get('/all/:date', (req, res) => {
   db.getAllPingsByDate(req.params.date)
-    .then((x) => { res.json(x)});
+    .then((x) => res.json(x));
 });
 
 server.get('/all/:from/:to', (req, res) => {

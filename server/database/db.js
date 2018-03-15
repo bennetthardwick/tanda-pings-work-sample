@@ -159,14 +159,10 @@ let createDeviceHashTableFromRows = (rows) => {
   
   let data = {};
 
-  console.log("row length", rows.length);
-
   rows.forEach((x) => {
     if (!data[x.device_id]) data[x.device_id] = [];
     data[x.device_id].push(x.epoch_time);
   })
-
-  console.log(data);
 
   return data;
 
