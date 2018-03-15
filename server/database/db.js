@@ -49,26 +49,26 @@ module.exports.getPingsByDate = (device_id, date) => {
   
   let day = parseDate(date);
 
-  return genericDevicePingsByPeriod(day.start, day.end, device_id);
+  return devicePingsByPeriod(day.start, day.end, device_id);
 
 };
 
 module.exports.getPingsByPeriod = (device_id, from, to) => {
-  return genericDevicePingsByPeriod(from, to, device_id);
+  return devicePingsByPeriod(from, to, device_id);
 };
 
 module.exports.getAllPingsByPeriod = (from, to) => {
-  return genericPingsByPeriod(from, to);
+  return pingsByPeriod(from, to);
 };
 
 module.exports.getAllPingsByDate = (date, to) => {
 
   let day = parseDate(date);
 
-  return genericPingsByPeriod(day.start, day.end);
+  return pingsByPeriod(day.start, day.end);
 }
 
-function genericPingsByPeriod(from, to) {
+let pingsByPeriod = (from, to) => {
 
   let fromEpoch = parseTime(from);
   let toEpoch = parseTime(to);
@@ -86,7 +86,7 @@ function genericPingsByPeriod(from, to) {
   });
 }
 
-function genericDevicePingsByPeriod(from, to, device_id) {
+let devicePingsByPeriod = (from, to, device_id) => {
 
   let fromEpoch = parseTime(from);
   let toEpoch = parseTime(to) - 1;
