@@ -6,9 +6,6 @@ const pingTableName = "pings";
 
 /* -- Private Methods --*/
 
-// Note: These functions are defined using var so they can be used both
-// as exports
-
 let parseTime = (time) => {
   if (parseInt(time) <= 9999) return Math.round(new Date(time).getTime() / 1000);
   else if (parseInt(time) > 9999) return time;
