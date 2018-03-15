@@ -27,7 +27,7 @@ npm start
 
 ## Reflection
 ### Why JavaScript?
-Recently I've been using TypeScript for the majority of my projects. This is mainly due to the static type checking and support for experimental ECMAScript Syntax. For this project I decided to go back to basics and use JavaScript
+Recently I've been using TypeScript for the majority of my projects. This is mainly due to the static type checking and support for experimental ECMAScript Syntax. For this project I decided to go back to basics and use JavaScript to test how well I perform without Intellisense all the advanced TypeScript features I've come to take for granted.
 
 ### Why Sqlite?
 Typically I'd use a NoSQL database like [MongoDB](https://www.mongodb.com/) or an ORM like [Sequelize](http://docs.sequelizejs.com/) as a datastore. For this project, I orignally intended to follow the suit and use [NeDB](https://github.com/louischatriot/nedb) a MongoDB inspired local datastore. While I felt this would be a great fit for a small project like this, I felt that using a SQL database like Sqlite3 would be better. This is mainly because Tanda currently uses Postgresql, but also because using SQL would allow me to easily swap databases without changing a lot of code. In the case that the code should need to be changed to work with a NoSQL database, this would not be a large problem due to a layer of abstraction I added between the server and the database (`db.js`).
