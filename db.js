@@ -46,11 +46,9 @@ module.exports.addPing = (device_id, epoch_time) => {
 };
 
 module.exports.getPingsByDate = (device_id, date) => {
-  let dateFrom = new Date(date).setUTCHours(0, 0, 0, 0);
-
-  console.log(date);
-
-  let dateTo = new Date(date).setUTCHours(23, 59, 59, 999);
+  
+  let dateFrom = new Date(date).setUTCHours(0, 0, 0, 0) / 1000;
+  let dateTo = Math.ceil(new Date(date).setUTCHours(23, 59, 59, 999) / 1000);
 
   return genericDevicePingsByPeriod(dateFrom, dateTo, device_id);
 
@@ -84,7 +82,7 @@ function genericPingsByPeriod(from, to) {
 
   return new Promise((resolve, reject) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, (err, rows) => {
-      console.log(rows);
+  
       if (err) return reject(err);
       else resolve(rows);
     });
@@ -93,21 +91,16 @@ function genericPingsByPeriod(from, to) {
 
 function genericDevicePingsByPeriod(from, to, device_id) {
 
-  console.log(from, to);
-
-  let fromEpoch = Math.floor(new Date(from).getTime() / 1000);
-  let toEpoch = Math.floor(new Date(to).getTime() / 1000);
+  let fromEpoch = parseTime(from);
+  let toEpoch = parseTime(to) - 1;
 
   let allSelectQuery = `SELECT * FROM ${pingTableName} 
                         WHERE epoch_time BETWEEN (?) AND (?)
                           AND device=(SELECT id FROM devices WHERE device_id=(?))`;
 
-
-  console.log(fromEpoch, 'and', toEpoch);
-
   return new Promise((resolve, reject) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, device_id, (err, rows) => {
-      console.log(err, rows);
+  
       if (err) return reject(err);
       else resolve(rows);
     });
@@ -120,7 +113,7 @@ module.exports.getDevices = () => {
     db.all(`SELECT device_id FROM ${deviceTableName}`, (err, rows) => {
       if (err) return reject(err);
       else if (rows) {
-        console.log(rows);
+    
         return resolve(rows);
       }
     })
@@ -151,8 +144,12 @@ module.exports.closeConnection = () => {
 
 module.exports.sqlite = db;
 
-function parseTime(time) {
-  if (typeof time === "string") return new Date(time).getTime() / 1000;
-  else if (typeof time === "number") return time;
+let parseTime = (time) => {
+  if (parseInt(time) <= 9999) return Math.round(new Date(time).getTime() / 1000);
+  else if (parseInt(time) > 9999) return time;
   else return false;
 }
+
+module.exports.parseTime = parseTime; 
+
+
