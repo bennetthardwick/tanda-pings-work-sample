@@ -99,7 +99,7 @@ let devicePingsByPeriod = (from, to, device_id) => {
     db.all(allSelectQuery, fromEpoch, toEpoch, device_id, (err, rows) => {
   
       if (err) return reject(err);
-      else resolve(rows);
+      else resolve(rows.map(x => x.epoch_time));
     });
   });
 }
@@ -165,10 +165,6 @@ let createDeviceHashTableFromRows = (rows) => {
   })
 
   return data;
-
-}
-
-let createArrayFromRows = (rows) => {
 
 }
 
