@@ -7,12 +7,14 @@ var server = express();
 
 server.post('/:device_id/:epoch_time', (req, res) => {
   db.addPing(req.params.device_id, req.params.epoch_time)
-    .then(() => res.send('ok'));
+    .then(() => res.status(200).send())
+    .catch(() => res.status(500).send());
 });
 
 server.post('/clear_data', (req, res) => {
   db.resetDatabase()
-    .then(() => res.send('ok'));
+    .then(() => res.status(200).send())
+    .catch(() => res.status(500).send());
 });
 
 server.get('/all/:date', (req, res) => {
