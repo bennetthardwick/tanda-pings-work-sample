@@ -9,19 +9,18 @@ var server = express();
 server.set('port', port);
 
 server.post('/:device_id/:epoch_time', (req, res) => {
-
-  db.addPing(req.params.device_id, req.params.epoch_time);
-
-  res.send('id/time');
+  db.addPing(req.params.device_id, req.params.epoch_time)
+    .then(() => res.send('ok'));
 });
 
 server.post('/clear_data', (req, res) => {
   db.resetDatabase()
-    .then(() => res.send(""));
+    .then(() => res.send('ok'));
 });
 
 server.get('/all/:date', (req, res) => {
-
+  db.getAllPingsDate(req.params.date)
+    .then((x) => res.send(x));
 });
 
 server.get('/all/:from/:to', (req, res) => {
@@ -35,7 +34,8 @@ server.get('/:device_id/:date', (req, res) => {
 });
 
 server.get('/:device_id/:from/:to', (req, res) => {
-  res.send('id/from/to');
+  db.getPingsByPeriod(req.params.device_id, req.params.from, req.params.to)
+    .then((x) => res.send(x));
 });
 
 server.get('/devices', (req, res) => {
